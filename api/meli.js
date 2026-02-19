@@ -1,12 +1,14 @@
 api/meli.js
 export default async function handler(req, res) {
-  const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).json({ error: "Missing url parameter" });
-  }
-
   try {
+    const url = req.query.url;
+
+    if (!url) {
+      res.statusCode = 400;
+      res.end("Missing url parameter");
+      return;
+    }
+
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
@@ -14,10 +16,13 @@ export default async function handler(req, res) {
       }
     });
 
-    const data = await response.text();
-    res.status(response.status).send(data);
+    const text = await response.text();
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.statusCode = response.status;
+    res.end(text);
+
+  } catch (err) {
+    res.statusCode = 500;
+    res.end("Server error: " + err.message);
   }
 }
