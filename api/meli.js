@@ -1,14 +1,8 @@
-api/meli.js
-export const config = {
-  runtime: "edge",
-};
-
-export default async function handler(req) {
-  const { searchParams } = new URL(req.url);
-  const url = searchParams.get("url");
+export default async function handler(req, res) {
+  const { url } = req.query;
 
   if (!url) {
-    return new Response("Missing url parameter", { status: 400 });
+    return res.status(400).json({ error: "Missing url parameter" });
   }
 
   try {
@@ -19,14 +13,11 @@ export default async function handler(req) {
       }
     });
 
-    const text = await response.text();
+    const data = await response.text();
 
-    return new Response(text, {
-      status: response.status,
-      headers: { "Content-Type": "application/json" }
-    });
+    res.status(response.status).send(data);
 
-  } catch (err) {
-    return new Response("Server error: " + err.message, { status: 500 });
+  } catch (error) {
+    res.status(500).json({ error: "Fetch failed", detail: error.message });
   }
 }
